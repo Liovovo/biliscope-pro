@@ -203,7 +203,8 @@ function updateVideoData(userId, callback) {
 
             let pn = 1;
             let promises = [];
-            while (pn * NUM_PER_PAGE < count) {
+            // 限制2页避免触发风控
+            while (pn * NUM_PER_PAGE < count && pn < 2) {
                 pn += 1;
                 promises.push(requestSearchPage(userId, pn, map));
             }
@@ -330,46 +331,6 @@ function updateVideoInfo(videoId, callback) {
     })
 }
 
-
-async function requestGuardPage(roomid, uid, pn, map) {
-    return biliGet(`https://api.live.bilibili.com/xlive/app-room/v2/guardTab/topList`, {
-            roomid: roomid,
-            page: pn,
-            ruid: uid,
-            page_size: 30,
-        })
-        .then((data) => {
-            if (data["code"] == 0) {
-                for (let u of data["data"]["top3"]) {
-                    map.set(u["uid"], u);
-                }
-                for (let u of data["data"]["list"]) {
-                    map.set(u["uid"], u);
-                }
-            }
-            return data;
-        })
-}
-
-async function getGuardInfo(roomId, uid) {
-    let map = new Map();
-    return requestGuardPage(roomId, uid, 1, map).then((data) => {
-        if (data["code"] != 0) {
-            return [];
-        }
-        let count = data["data"]["info"]["num"];
-        let pn = 1;
-        let promises = [];
-        while (pn * 30 < count) {
-            pn += 1;
-            promises.push(requestGuardPage(roomId, uid, pn, map));
-        }
-        return Promise.all(promises).then((values) => {
-            let data = Array.from(map.values());
-            return data
-        })
-    });
-}
 
 async function getTagsInfo() {
     let tags = {};

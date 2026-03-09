@@ -1,10 +1,11 @@
-# BiliScope
+# BiliScopePro
 
 [![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/ekmbchepcdggpcbdpjpijphjiiiimfga)](https://chromewebstore.google.com/detail/biliscope-bilibili%E6%8F%92%E4%BB%B6%EF%BC%8C%E7%9F%A5%E9%81%93ta/ekmbchepcdggpcbdpjpijphjiiiimfga?hl=zh-CN)
 [![Edge Add-on Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fppfempmgnmhbeoanbndlackmlolejegm&query=%24.version&prefix=v&label=edge%20add-on&color=%23ee7a3b)](https://microsoftedge.microsoft.com/addons/detail/biliscope/ppfempmgnmhbeoanbndlackmlolejegm)
 [![Mozilla Add-on Version](https://img.shields.io/amo/v/biliscope-bilibili%E6%8F%92%E4%BB%B6-%E4%BD%A0%E7%9A%84b%E7%AB%99%E5%B0%8F%E5%8A%A9%E6%89%8B)](https://addons.mozilla.org/en-US/firefox/addon/biliscope-bilibili%E6%8F%92%E4%BB%B6-%E4%BD%A0%E7%9A%84b%E7%AB%99%E5%B0%8F%E5%8A%A9%E6%89%8B)
 
 BiliScope是一个为B站打造的Chrome/Edge/Firefox插件。它可以让你在B站的任何网页轻松查询任何出现的UP的详细信息，以及查看视频的AI内容总结。
+这是基于BiliScope的基础上二次开发版本，添加一些小功能以及修复部分问题。
 
 [![example_img](https://github.com/gaogaotiantian/biliscope/blob/master/img/screenshot.png)](https://github.com/gaogaotiantian/biliscope/blob/master/img/screenshot.png)
 
@@ -20,7 +21,6 @@ Firefox的用户，可以去Mozilla Addon Store搜索[BiliScope](https://addons.
 
 你也可以直接clone这个project，`make`（powershell中请使用`./make`），就会打包出一个`biliscope_chrome.zip`
 和一个文件`biliscope_firefox.zip`文件，可以在`chrome://extensions`（需要打开开发者模式）和`about:addons`中安装。
-
 
 ## 功能
 

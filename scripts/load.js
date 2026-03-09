@@ -16,14 +16,14 @@ function loadOptions() {
     return chrome.storage.sync.get({
         enableUpCard: true,
         enableBlockButton: true,
-        enableRollbackFeedcard: true,
+        enableRollbackFeedcard: false,
         enableWordCloud: true,
-        enableAiSummary: true,
-        enableHotComment: true,
+        enableAiSummary: false,
+        enableHotComment: false,
         aiSummaryHoverThreshold: 800,
-        enableVideoTag: true,
+        enableVideoTag: false,
         enableVideoData: true,
-        enableIpLabel: true,
+        enableIpLabel: false,
         minSize: 5
     });
 }
@@ -152,16 +152,6 @@ window.addEventListener("load", function() {
                 subtree: true,
             });
     }
-    });
-
-    getGuardInfo(6726252, 245645656).then((data) => {
-        guardInfo = data;
-        // Shuffle guardInfo
-        let i = guardInfo.length;
-        while (i) {
-            let j = Math.floor(Math.random() * i--);
-            [guardInfo[i], guardInfo[j]] = [guardInfo[j], guardInfo[i]];
-        }
     });
 
     getTagsInfo().then((data) => {

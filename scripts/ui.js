@@ -6,6 +6,15 @@ function titleTypeToClass(titleType) {
     }
 }
 
+function getUidRegTime(uid) {
+    for (const range of BILIBILI_UID_TIME_RANGES) {
+        if (uid >= range[0] && uid <= range[1]) {
+            return range[2];
+        }
+    }
+    return "未知";
+}
+
 function sexToClass(sex) {
     if (sex == "男") {
         return "male";
@@ -103,9 +112,9 @@ function noteDataToDisplay(noteData, mid) {
 function getUserProfileCardDataHTML(data) {
     return `
         <div class="idc-theme-img" ${data["top_photo"] ? `style="background-image: url(&quot;${data["top_photo"]}@100Q.webp&quot;);"`: ''}>
-            <div style="position: absolute; top: 85px; right: 10px">
-                <a><span id="biliscope-follow-button" 
-                         class="biliscope-relation ${relationClass(data)}" 
+            <div style="position: absolute; top: 85px; right: 10px; display: flex; gap: 8px;">
+                <a><span id="biliscope-follow-button"
+                         class="biliscope-relation ${relationClass(data)}"
                          ${data?.relation?.mtime ? `title="${subscribeTimeToDisplay(data)}"` : ''}>
                     ${relationDisplay(data)}
                 </span></a>
@@ -130,7 +139,7 @@ function getUserProfileCardDataHTML(data) {
                 <div style="white-space: nowrap">
                     <div id="biliscope-username-wrapper" style="display: inline-block">
                         <a class="idc-username">
-                            <b title="点击添加备注" class="idc-uname" style="${data["vip"] ? "color: rgb(251, 114, 153);": "color: #18191C"}">
+                            <b title="点击添加备注" class="idc-uname" style="${data["vip"] ? "color: rgb(251, 114, 153);": ""}">
                                 ${data["name"]}
                             </b>
                         </a>
@@ -142,6 +151,9 @@ function getUserProfileCardDataHTML(data) {
                         </span>
                     </div>
                 </div>
+                <div class="idc-meta biliscope-uid-line">
+                    <span class="idc-meta-item"><data-title>UID</data-title> ${data["mid"]} (${getUidRegTime(data["mid"])})</span>
+                </div>
                 <div class="idc-meta" id="biliscope-note-wrapper">
                     <div class="idc-meta-item"
                           id="biliscope-card-note-text"
@@ -151,7 +163,7 @@ function getUserProfileCardDataHTML(data) {
                               rows="3"
                               hidden
                               maxlength="5000"
-                              placeholder="给up加个备注（手动换行前的内容都将显示在卡片上）\n或者加几个#标签#"
+                              placeholder="加个备注或#标签#"
                               style="resize: vertical; width: 100%">\n${(data["mid"] && noteData[data["mid"]]) || ""}</textarea>
                 </div>
                 <div class="idc-meta">
@@ -189,69 +201,22 @@ function getUserProfileCardDataHTML(data) {
             <div class="idc-auth-description">
                 ${data["sign"]}
             </div>
-            <div>
-                ${getGuardSupportHTML(data)}
-            </div>
+
+            <!-- 此处可以自行配置外部链接，本项目不提供预设 -->
+            <!-- <div class="idc-meta">
+                <a href="https://example.com/uid=${data["mid"]}" target="_blank">
+                    <span class="idc-meta-item"><data-title>查询1</data-title></span>
+                </a>
+                <a href="https://example.com/${data["mid"]}" target="_blank">
+                    <span class="idc-meta-item"><data-title>查询2</data-title></span>
+                </a>
+            </div> -->
+
         </div>
     `
 }
 
-function getGuardSupportHTML(data) {
-    if (guardInfo == null || guardInfo.length === 0) {
-        return "";
-    }
 
-    let guard = guardInfo[data["mid"] % guardInfo.length];
-    const guardImgs = [
-        // 总督
-        "ffcd832b5d7b84ea851cb8156ec0a71940439511",
-        // 提督
-        "98a201c14a64e860a758f089144dcf3f42e7038c",
-        // 舰长
-        "143f5ec3003b4080d1b5f817a9efdca46d631945",
-    ]
-    const bgImg = guardImgs[guard["guard_level"] - 1];
-
-    let borderColor = "";
-    if (guard["guard_level"] === 3) {
-        borderColor = "rgb(103, 232, 255)";
-    } else {
-        borderColor = "rgb(255, 232, 84)";
-    }
-
-    let bgColor = "";
-    const medalLevel = guard["medal_info"]["medal_level"];
-    if (medalLevel < 25) {
-        bgColor = "rgb(26, 84, 75), rgb(82, 157, 146)";
-    } else if (medalLevel  < 29) {
-        bgColor = "rgb(6, 21, 76), rgb(104, 136, 241)";
-    } else if (medalLevel < 33) {
-        bgColor = "rgb(45, 8, 85), rgb(157, 155, 255)";
-    } else {
-        bgColor = "rgb(122, 4, 35), rgb(233, 134, 187)";
-    }
-
-    return `
-        <div class="idc-guard-info">
-            <span class="support-note" style="margin-right: 6px">感谢</span>
-            <span class="item dp-i-block t-over-hidden t-nowrap border-box live-skin-main-text">
-                <div class="fans-medal-item" style="border-color: ${borderColor};">
-                    <div class="fans-medal-label" style="background-image: linear-gradient(45deg, ${bgColor});">
-                        <i class="medal-deco medal-guard" style="background-image: url(&quot;https://i0.hdslb.com/bfs/live/${bgImg}.png@44w_44h.webp&quot;);"></i>
-                        <span class="fans-medal-content">天分高</span>
-                    </div>
-                    <div class="fans-medal-level" style="color: rgb(26, 84, 75);">
-                        ${guard["medal_info"]["medal_level"]}
-                    </div>
-                </div>
-                <span class="fans-uname">
-                    ${guard["username"]}
-                </span>
-            </span>
-            <span class="support-note">对作者的支持</span>
-        </div>
-    `
-}
 
 function getUserProfileCardHTML(data) {
     return `
@@ -740,8 +705,6 @@ UserProfileCard.prototype.updateData = function (data) {
 
     this.updateCursor(this.cursorX, this.cursorY);
 }
-
-var guardInfo = null;
 
 let biliTags = {};
 let myMid = null;
