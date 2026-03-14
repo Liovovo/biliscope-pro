@@ -125,6 +125,7 @@ function getUserProfileCardDataHTML(data) {
         <div class="idc-info clearfix">
             <a class="idc-avatar-container" href="https://space.bilibili.com/${data["mid"]}" target="_blank">
                 <img alt="${data["name"]}" ${data["face"] ? `src="${data["face"]}@54w_54h_1c.webp"` : ''} class="idc-avatar">
+                ${data["pendant"]?.["image"] ? `<img src="${data["pendant"]["image"]}" class="idc-avatar-pendant">` : ''}
                 <div class="${data["live_status"] ? "": "d-none"}">
                     <div class="live-tab">
                         <img src="//s1.hdslb.com/bfs/static/jinkela/space/assets/live.gif" alt="live" class="live-gif">
@@ -663,6 +664,7 @@ UserProfileCard.prototype.updateData = function (data) {
         this.data["profession"] = d["data"]["profession"]["is_show"]
             ? `${d["data"]["profession"]["title"]} ${d["data"]["profession"]["department"]}`
             : "";
+        this.data["pendant"] = d["data"]["pendant"];
     } else if (data["api"] == "relation") {
         this.data["relation"] = d["data"]["relation"];
         this.data["be_relation"] = d["data"]["be_relation"];

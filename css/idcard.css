@@ -193,6 +193,17 @@
     left: 0
 }
 
+#biliscope-id-card .idc-avatar-pendant {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 86px;
+    height: 86px;
+    pointer-events: none;
+    z-index: 1
+}
+
 #biliscope-id-card .idc-uname {
     display: inline-block;
     font-size: 14px;

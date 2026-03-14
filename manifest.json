@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BiliScopePro",
-  "version": "0.6.5.1",
+  "version": "0.6.5.2",
   "description": "在B站的各类网页上显示用户的详细信息，基于gaogaotiantian/biliscope",
   "icons": {
     "128": "img/logo.png"
