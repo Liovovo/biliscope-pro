@@ -146,7 +146,7 @@ function getUserProfileCardDataHTML(data) {
                         </a>
                         <span class="gender biliscope-icon ${sexToClass(data["sex"])}"></span>
                         <span class="lv-wrapper">
-                            <span class="lv-img-wrapper" style="position: relative; top: -${data["level"]*12}px">
+                            <span class="lv-img-wrapper" style="position: relative; top: -${(data["is_senior_member"] === 1 ? data["level"] + 4 : data["level"])*12}px">
                                 <img style="height: 132px; vertical-align: middle" src="${chrome.runtime.getURL("img/bililv.svg")}">
                             </span>
                         </span>
@@ -656,6 +656,7 @@ UserProfileCard.prototype.updateData = function (data) {
         this.data["face"] = d["data"]["face"].replace("http://", "https://");
         this.data["sign"] = d["data"]["sign"];
         this.data["level"] = d["data"]["level"];
+        this.data["is_senior_member"] = d["data"]["is_senior_member"];
         this.data["title"] = d["data"]["official"]["title"];
         this.data["title_type"] = d["data"]["official"]["type"];
         this.data["live_status"] = d["data"]["live_room"] ? d["data"]["live_room"]["liveStatus"]: 0;
