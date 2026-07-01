@@ -195,29 +195,34 @@ function updateVideoData(userId, callback) {
             cacheAndUpdate(callback, userId, "count", {"count": count});
 
             if (count > 0) {
-                let lastVideoTimestamp = data["data"]["list"]["vlist"][0]["created"];
+                let vlist = data["data"]["list"]["vlist"];
+                let lastVideoTimestamp = vlist[0]["created"];
                 cacheAndUpdate(callback, userId, "lastVideoTimestamp", {"timestamp": lastVideoTimestamp});
+
+                let recentVideos = vlist.slice(0, 3).map(v => ({
+                    aid: v["aid"],
+                    bvid: v["bvid"],
+                    pic: v["pic"],
+                    title: v["title"],
+                    length: v["length"],
+                    play: v["play"],
+                    created: v["created"]
+                }));
+                cacheAndUpdate(callback, userId, "recentVideos", {"vlist": recentVideos});
             } else {
                 cacheAndUpdate(callback, userId, "lastVideoTimestamp", {"timestamp": null});
+                cacheAndUpdate(callback, userId, "recentVideos", {"vlist": []});
             }
 
-            let pn = 1;
-            let promises = [];
-            // 限制2页避免触发风控
-            while (pn * NUM_PER_PAGE < count && pn < 2) {
-                pn += 1;
-                promises.push(requestSearchPage(userId, pn, map));
-            }
-            Promise.all(promises).then((values) => {
-                cacheAndUpdate(callback, userId, "wordcloud", convertVideoData(map));
-                cacheAndUpdate(callback, userId, "totalVideoInfo", {
-                    "lastMonthCount": map.get("lastMonthVideoCount"),
-                    "totalLength": map.get("totalVideoLength")});
-            })
+            cacheAndUpdate(callback, userId, "wordcloud", convertVideoData(map));
+            cacheAndUpdate(callback, userId, "totalVideoInfo", {
+                "lastMonthCount": map.get("lastMonthVideoCount"),
+                "totalLength": map.get("totalVideoLength")});
         } else {
             cacheAndUpdate(callback, userId, "count", {"count": null});
             cacheAndUpdate(callback, userId, "wordcloud", {"word": [], "type": []});
             cacheAndUpdate(callback, userId, "totalVideoInfo", {"lastMonthCount": null, "totalLength": null});
+            cacheAndUpdate(callback, userId, "recentVideos", {"vlist": []});
         }
     });
 }

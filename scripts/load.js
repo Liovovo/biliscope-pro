@@ -18,6 +18,7 @@ function loadOptions() {
         enableBlockButton: true,
         enableRollbackFeedcard: false,
         enableWordCloud: true,
+        wordCloudView: "wordcloud",
         enableAiSummary: false,
         enableHotComment: false,
         aiSummaryHoverThreshold: 800,

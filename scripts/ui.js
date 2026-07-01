@@ -182,9 +182,9 @@ function getUserProfileCardDataHTML(data) {
                     <span class="idc-meta-item"><data-title>近30天投稿数</data-title> ${data["lastMonthVideoCount"] || 0}</span>
                     <span class="idc-meta-item"><data-title>上次投稿</data-title> ${timestampToDisplay(data["lastVideoTimestamp"])}</span>
                 </div>
-                <div class="idc-meta" style="${data["count"] ? "": "display: none"}">
-                    <span class="idc-meta-item"><data-title>平均稿件长度</data-title> ${secondsToDisplay(data["totalVideoLength"] / data["count"])}</span>
-                </div>
+                <!-- <div class="idc-meta" style="${data["count"] ? "": "display: none"}">
+                     <span class="idc-meta-item"><data-title>平均稿件长度</data-title> ${secondsToDisplay(data["totalVideoLength"] / data["count"])}</span>
+                </div> -->
             </div>
             <div id="biliscope-tag-list">
             </div>
@@ -212,7 +212,6 @@ function getUserProfileCardDataHTML(data) {
                     <span class="idc-meta-item"><data-title>查询2</data-title></span>
                 </a>
             </div> -->
-
         </div>
     `
 }
@@ -220,24 +219,35 @@ function getUserProfileCardDataHTML(data) {
 
 
 function getUserProfileCardHTML(data) {
+    const expanded = !!biliScopeOptions.enableWordCloud;
+    const view = biliScopeOptions.wordCloudView || "wordcloud";
+    const showWordCloud = expanded && view === "wordcloud";
+    const showRecent = expanded && view === "recent";
     return `
         <div id="biliscope-id-card" style="position: absolute;">
             <div id="biliscope-id-card-data">
                 ${getUserProfileCardDataHTML(data)}
             </div>
             <div id="biliscope-wordcloud-wrapper">
-                <div id="word-cloud-canvas-wrapper" ${biliScopeOptions.enableWordCloud ? "": "hidden"}>
+                <div id="word-cloud-canvas-wrapper" ${showWordCloud ? "" : "hidden"}>
                     <canvas id="word-cloud-canvas" style="width: 100%; height: 0"></canvas>
                 </div>
+                <div id="recent-videos-wrapper" ${showRecent ? "" : "hidden"}>
+                    <div class="recent-videos-header">
+                        <span class="recent-videos-title">最近发布</span>
+                        <a class="recent-videos-view-all" href="${data["mid"] ? `https://space.bilibili.com/${data["mid"]}/upload` : "#"}" target="_blank">查看全部</a>
+                    </div>
+                    <div class="recent-videos-list"></div>
+                </div>
                 <div id="word-cloud-toggler" hidden>
-                    <div class="arrow-up">
+                    <div class="word-cloud-toggle-buttons" ${expanded ? "hidden" : ""}>
+                        <span class="word-cloud-toggle-btn" data-view="wordcloud">词云</span>
+                        <span class="word-cloud-toggle-btn" data-view="recent">最近</span>
+                    </div>
+                    <div class="arrow-up" ${expanded ? "" : "hidden"}>
                         <svg xmlns="http://www.w3.org/2000/svg" height="12px" viewBox="0 0 512 512" fill="#adadad"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M233.4 105.4c12.5-12.5 32.8-12.5 45.3 0l192 192c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L256 173.3 86.6 342.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l192-192z"/></svg>
                     </div>
-                    <div class="arrow-down">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="12px" viewBox="0 0 512 512" fill="#adadad"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg>
-                    </div>
                 </div>
-            </div>
         </div>
     `
 }
@@ -292,6 +302,10 @@ UserProfileCard.prototype.disable = function() {
             canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
             canvas.parentNode.classList.remove("biliscope-canvas-show");
         }
+        let recentList = document.querySelector("#recent-videos-wrapper .recent-videos-list");
+        if (recentList) {
+            recentList.innerHTML = "";
+        }
         this.idCardObserver.disconnect();
     }
     return true;
@@ -319,41 +333,54 @@ UserProfileCard.prototype.clearOriginalCard = function() {
 
 UserProfileCard.prototype.initEvents = function() {
     let wordCloudCanvasWrapper = document.getElementById("word-cloud-canvas-wrapper");
+    let recentVideosWrapper = document.getElementById("recent-videos-wrapper");
     let wordCloudWrapper = document.getElementById("biliscope-wordcloud-wrapper");
     let arrowUp = wordCloudWrapper.getElementsByClassName("arrow-up")[0];
-    let arrowDown = wordCloudWrapper.getElementsByClassName("arrow-down")[0];
+    let toggleButtons = wordCloudWrapper.getElementsByClassName("word-cloud-toggle-buttons")[0];
 
-    wordCloudWrapper.addEventListener("mouseenter", (ev) => {
-        document.getElementById("word-cloud-toggler").hidden = false;
+    const updateTogglerVisibility = () => {
         if (biliScopeOptions.enableWordCloud) {
             arrowUp.hidden = false;
-            arrowDown.hidden = true;
+            toggleButtons.hidden = true;
         } else {
             arrowUp.hidden = true;
-            arrowDown.hidden = false;
+            toggleButtons.hidden = false;
         }
+    };
+    updateTogglerVisibility();
+
+    wordCloudWrapper.addEventListener("mouseenter", () => {
+        document.getElementById("word-cloud-toggler").hidden = false;
     });
 
-    wordCloudWrapper.addEventListener("mouseleave", (ev) => {
+    wordCloudWrapper.addEventListener("mouseleave", () => {
         document.getElementById("word-cloud-toggler").hidden = true;
     });
 
-    arrowUp.addEventListener("click", (ev) => {
+    for (let btn of toggleButtons.getElementsByClassName("word-cloud-toggle-btn")) {
+        btn.addEventListener("click", () => {
+            const view = btn.getAttribute("data-view");
+            biliScopeOptions.enableWordCloud = true;
+            biliScopeOptions.wordCloudView = view;
+            wordCloudCanvasWrapper.hidden = view !== "wordcloud";
+            recentVideosWrapper.hidden = view !== "recent";
+            if (view === "wordcloud") {
+                let canvas = document.getElementById("word-cloud-canvas");
+                this.drawWordCloud(canvas);
+            } else if (view === "recent") {
+                this.drawRecentVideos();
+            }
+            saveOptions();
+            updateTogglerVisibility();
+        });
+    }
+
+    arrowUp.addEventListener("click", () => {
         biliScopeOptions.enableWordCloud = false;
         wordCloudCanvasWrapper.hidden = true;
+        recentVideosWrapper.hidden = true;
         saveOptions();
-        arrowUp.hidden = true;
-        arrowDown.hidden = false;
-    });
-
-    arrowDown.addEventListener("click", (ev) => {
-        let canvas = document.getElementById("word-cloud-canvas");
-        biliScopeOptions.enableWordCloud = true;
-        wordCloudCanvasWrapper.hidden = false;
-        saveOptions();
-        arrowUp.hidden = false;
-        arrowDown.hidden = true;
-        this.drawWordCloud(canvas);
+        updateTogglerVisibility();
     });
 }
 
@@ -633,6 +660,68 @@ UserProfileCard.prototype.drawWordCloud = function(canvas) {
     });
 }
 
+UserProfileCard.prototype.drawRecentVideos = function() {
+    const listEl = document.querySelector("#recent-videos-wrapper .recent-videos-list");
+    if (!listEl) return;
+    listEl.innerHTML = "";
+    const vlist = (this.data["recentVideos"] || []).slice(0, 3);
+    if (vlist.length === 0) {
+        listEl.innerHTML = `<div class="recent-videos-empty">暂无最近发布</div>`;
+        return;
+    }
+    for (const v of vlist) {
+        const cover = v["pic"] ? v["pic"] + "@352w_200h.webp" : "";
+        const url = v["bvid"] ? `https://www.bilibili.com/video/${v["bvid"]}` : "#";
+        const title = v["title"] || "";
+        const duration = v["length"] || "";
+        const play = formatStatNumber(v["play"] || 0);
+        const date = formatRelativeTime(v["created"] || 0);
+        const item = document.createElement("a");
+        item.className = "recent-video-item";
+        item.href = url;
+        item.target = "_blank";
+        item.innerHTML = `
+            <div class="recent-video-cover">
+                <img src="${cover}" loading="lazy" alt="">
+                <span class="recent-video-duration">${escapeHtml(duration)}</span>
+            </div>
+            <div class="recent-video-title">${escapeHtml(title)}</div>
+            <div class="recent-video-meta">
+                <span class="recent-video-play">${play}</span>
+                <span class="recent-video-sep">·</span>
+                <span class="recent-video-date">${date}</span>
+            </div>
+        `;
+        listEl.appendChild(item);
+    }
+}
+
+function formatRelativeTime(ts) {
+    if (!ts) return "";
+    const diff = Math.floor(Date.now() / 1000 - ts);
+    if (diff < 60) return "1分钟前";
+    if (diff < 3600) return `${Math.floor(diff / 60)}分钟前`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}小时前`;
+    return `${Math.floor(diff / 86400)}天前`;
+}
+
+function formatStatNumber(n) {
+    n = Number(n) || 0;
+    if (n >= 10000) {
+        return (n / 10000).toFixed(1).replace(/\.0$/, "") + "万";
+    }
+    return String(n);
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
 UserProfileCard.prototype.updateData = function (data) {
     let uid = data["uid"];
     let d = data["payload"];
@@ -679,6 +768,11 @@ UserProfileCard.prototype.updateData = function (data) {
     } else if (data["api"] == "totalVideoInfo") {
         this.data["lastMonthVideoCount"] = d["lastMonthCount"];
         this.data["totalVideoLength"] = d["totalLength"];
+    } else if (data["api"] == "recentVideos") {
+        this.data["recentVideos"] = d["vlist"];
+        if (biliScopeOptions.enableWordCloud && biliScopeOptions.wordCloudView === "recent") {
+            this.drawRecentVideos();
+        }
     }
 
     if (data["api"] == "wordcloud") {
